@@ -49,7 +49,12 @@ int main() {
             int iConn = accept(iListenfd, (struct sockaddr*)&clientAddr, &clientAddrLen);
             char ip[20];
             inet_ntop(AF_INET, &clientAddr.sin_addr, ip, 20);
-            cerr << "accepted connection from " << ip << endl;
+            cout << endl << "Established connection with " << ip << endl;
+
+            char buffer[4096];
+            int x = recv(iConn, buffer, sizeof(buffer), 0);
+            cout << "recved msg:" << buffer << endl;
+            send(iConn, buffer, strlen(buffer), 0);
             close(iConn);
         }
     }

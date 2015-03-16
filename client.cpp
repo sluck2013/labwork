@@ -119,7 +119,11 @@ int main(int argc, char** argv) {
     addrServ.sin_port = htons(iPortNum);
     inet_pton(AF_INET, strIP.c_str(), &addrServ.sin_addr);
     connect(iConn, (struct sockaddr*) &addrServ, sizeof(addrServ)); 
-
+    char msg[] = "EcHo";
+    send(iConn, msg, strlen(msg), 0);
+    char recvbuff[4096];
+    recv(iConn, recvbuff, sizeof(recvbuff), 0);
+    cout << "recved msg: " << recvbuff << endl;
     return 0;
 }
 
