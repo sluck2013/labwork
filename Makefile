@@ -1,3 +1,5 @@
+std=-std=c++11
+
 all: tunServer tunClient
 
 tunServer: server.cpp

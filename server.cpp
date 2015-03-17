@@ -45,24 +45,28 @@ int main() {
     while (1) {
         fsCurRst = fsRst;
         if ( select(iListenfd + 1, &fsRst, NULL, NULL, NULL) > 0 && FD_ISSET(iListenfd, &fsCurRst)) {
-            clientAddrLen = sizeof(clientAddr);
-            int iConn = accept(iListenfd, (struct sockaddr*)&clientAddr, &clientAddrLen);
-            char ip[20];
-            inet_ntop(AF_INET, &clientAddr.sin_addr, ip, 20);
-            cout << endl << "Established connection with " << ip << endl;
+            pid_t pid = fork();
+            if (pid == 0) {
+                clientAddrLen = sizeof(clientAddr);
+                int iConn = accept(iListenfd, (struct sockaddr*)&clientAddr, &clientAddrLen);
+                close(iListenfd);
+                char ip[20];
+                inet_ntop(AF_INET, &clientAddr.sin_addr, ip, 20);
+                cout << endl << "Established connection with " << ip << endl;
 
-            char buffer[4096];
-            while (1) {
-                int x = recv(iConn, buffer, sizeof(buffer), 0);
-                cout << "recv: " << buffer << endl;
-                if (!strncmp(buffer, "exit", 5)) {
-                    break;
+                char buffer[4096];
+                while (1) {
+                    int x = recv(iConn, buffer, sizeof(buffer), 0);
+                    cout << "recv from " << ip << ": " << buffer << endl;
+                    if (!strncmp(buffer, "exit", 5)) {
+                        break;
+                    }
+                    send(iConn, buffer, strlen(buffer), 0);
+                    cout << "sent to   " << ip << ": " << buffer << endl;
                 }
-                send(iConn, buffer, strlen(buffer), 0);
-                cout << "sent: " << buffer << endl;
+                close(iConn);
+                cout << endl << "Connection with " << ip << " closed!" << endl;
             }
-            close(iConn);
-            cout << endl << "Connection with " << ip << " closed!" << endl;
         }
     }
 }
