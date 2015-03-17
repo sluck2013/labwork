@@ -105,7 +105,7 @@ int main(int argc, char** argv) {
     } else if (!strcmp(argv[1], "i9")) {
         strIP = "192.168.13.9";
     } else if (!strcmp(argv[1], "i11")) {
-        strIP = "192.168.131.11";
+        strIP = "192.168.13.11";
     } else if (!strcmp(argv[1], "i0")) {
         strIP = "127.0.0.1";
     } else if (IPUtil.isIP(argv[1])) {

@@ -52,10 +52,17 @@ int main() {
             cout << endl << "Established connection with " << ip << endl;
 
             char buffer[4096];
-            int x = recv(iConn, buffer, sizeof(buffer), 0);
-            cout << "recved msg:" << buffer << endl;
-            send(iConn, buffer, strlen(buffer), 0);
+            while (1) {
+                int x = recv(iConn, buffer, sizeof(buffer), 0);
+                cout << "recv: " << buffer << endl;
+                if (!strncmp(buffer, "exit", 5)) {
+                    break;
+                }
+                send(iConn, buffer, strlen(buffer), 0);
+                cout << "sent: " << buffer << endl;
+            }
             close(iConn);
+            cout << endl << "Connection with " << ip << " closed!" << endl;
         }
     }
 }
