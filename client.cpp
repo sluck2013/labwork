@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <stdio.h>
-#include <string.h>
+//#include <string.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/time.h>
@@ -19,6 +19,7 @@
 #include <math.h>
 #include <sys/termios.h>
 #include <iostream>
+#include <string>
 #include <sstream>
 
 using namespace std;
@@ -119,11 +120,21 @@ int main(int argc, char** argv) {
     addrServ.sin_port = htons(iPortNum);
     inet_pton(AF_INET, strIP.c_str(), &addrServ.sin_addr);
     connect(iConn, (struct sockaddr*) &addrServ, sizeof(addrServ)); 
-    char msg[] = "EcHo";
-    send(iConn, msg, strlen(msg), 0);
+    cout << endl << "Connection with " << strIP << ":" << iPortNum 
+         << " established!" << endl;
+
+    std::string msg = "";
     char recvbuff[4096];
-    recv(iConn, recvbuff, sizeof(recvbuff), 0);
-    cout << "recved msg: " << recvbuff << endl;
+    while (1) {
+        getline(cin, msg);
+        send(iConn, msg.c_str(), msg.length() + 1, 0);
+        cout << "sent: " << msg << endl;
+        if (msg == "exit") {
+            break;
+        }
+        recv(iConn, recvbuff, sizeof(recvbuff), 0);
+        cout << "recv: " << recvbuff << endl;
+    }
     return 0;
 }
 
