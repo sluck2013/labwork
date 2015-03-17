@@ -119,7 +119,10 @@ int main(int argc, char** argv) {
     addrServ.sin_family = AF_INET;
     addrServ.sin_port = htons(iPortNum);
     inet_pton(AF_INET, strIP.c_str(), &addrServ.sin_addr);
-    connect(iConn, (struct sockaddr*) &addrServ, sizeof(addrServ)); 
+    if (connect(iConn, (struct sockaddr*) &addrServ, sizeof(addrServ)) <= 0) {
+        cout << "Connection failed!" << endl;
+        return -1;
+    }
     cout << endl << "Connection with " << strIP << ":" << iPortNum 
          << " established!" << endl;
 
