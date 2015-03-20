@@ -33,7 +33,8 @@ int main() {
     addr.sin_port = htons(2002);
     iListenfd = socket(AF_INET, SOCK_STREAM, 0);
 
-    int optval = 1;
+    char optval = '1';
+    setsockopt(iListenfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
     setsockopt(iListenfd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
 
     bind(iListenfd, (struct sockaddr*)&addr, sizeof(addr));
@@ -48,8 +49,8 @@ int main() {
     while (1) {
         fsCurRst = fsRst;
         if ( select(iListenfd + 1, &fsRst, NULL, NULL, NULL) > 0 && FD_ISSET(iListenfd, &fsCurRst)) {
-            pid_t pid = fork();
-            if (pid == 0) {
+            //pid_t pid = fork();
+            //if (pid == 0) {
                 clientAddrLen = sizeof(clientAddr);
                 int iConn = accept(iListenfd, (struct sockaddr*)&clientAddr, &clientAddrLen);
                 close(iListenfd);
@@ -69,7 +70,7 @@ int main() {
                 }
                 close(iConn);
                 cout << endl << "Connection with " << ip << " closed!" << endl;
-            }
+            //}
         }
     }
 }
