@@ -33,6 +33,9 @@ int main() {
     addr.sin_port = htons(2002);
     iListenfd = socket(AF_INET, SOCK_STREAM, 0);
 
+    int optval = 1;
+    setsockopt(iListenfd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
+
     bind(iListenfd, (struct sockaddr*)&addr, sizeof(addr));
     listen(iListenfd, 10);
     
