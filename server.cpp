@@ -78,8 +78,8 @@ int main() {
     while (1) {
         fsCurRst = fsRst;
         if ( select(iListenfd + 1, &fsRst, NULL, NULL, NULL) > 0 && FD_ISSET(iListenfd, &fsCurRst)) {
-            pid_t pid = fork();
-            if (pid == 0) {
+            //pid_t pid = fork();
+            //if (pid == 0) {
                 clientAddrLen = sizeof(clientAddr);
                 int iConn = accept(iListenfd, (struct sockaddr*)&clientAddr, &clientAddrLen);
                 cout << "accepted" << endl;
@@ -98,7 +98,8 @@ int main() {
                     send(iConn, buffer, strlen(buffer), 0);
                 }
                 close(iConn);
-            }
+                cout << endl << "Connection with " << ip << " closed!" << endl;
+            //}
         }
     }
 }
