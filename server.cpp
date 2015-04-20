@@ -19,17 +19,23 @@
 #include <math.h>
 #include <sys/termios.h>
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 
-int main() {
+int main(int argc, char* argv[]) {
+    ofstream ifs("aa.txt", ofstream::out);
+    ifs << argv[1] << endl;
+    ifs.close();
+    
     int iListenfd;
     struct sockaddr_in addr, clientAddr;
     socklen_t clientAddrLen;
 
     bzero(&addr, sizeof(addr));
     addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    inet_pton(AF_INET, "127.0.0.1", &(addr.sin_addr));
+    //addr.sin_addr.s_addr = htonl(INADDR_ANY);
     addr.sin_port = htons(2002);
     iListenfd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -49,8 +55,8 @@ int main() {
     while (1) {
         fsCurRst = fsRst;
         if ( select(iListenfd + 1, &fsRst, NULL, NULL, NULL) > 0 && FD_ISSET(iListenfd, &fsCurRst)) {
-            //pid_t pid = fork();
-            //if (pid == 0) {
+            pid_t pid = fork();
+            if (pid == 0) {
                 clientAddrLen = sizeof(clientAddr);
                 int iConn = accept(iListenfd, (struct sockaddr*)&clientAddr, &clientAddrLen);
                 close(iListenfd);
@@ -70,7 +76,7 @@ int main() {
                 }
                 close(iConn);
                 cout << endl << "Connection with " << ip << " closed!" << endl;
-            //}
+            }
         }
     }
 }

@@ -19,6 +19,7 @@
 #include <math.h>
 #include <sys/termios.h>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <sstream>
 
@@ -81,7 +82,10 @@ public:
 };
 
 int main(int argc, char** argv) {
-    if (argc < 3) {
+    bool bSSH = false;
+    if (argc == 1) {
+        bSSH = true;
+    } else if (argc < 3) {
         cout << "usage: " << argv[0] << " domain|IP|abbr port" << endl;
         cout << "abbr:" << endl;
         cout << "    d9:  srv365-09.cewit.stonybrook.edu" << endl;
@@ -92,27 +96,38 @@ int main(int argc, char** argv) {
 
         return 1;
     }
+    
+    ofstream of("log", ofstream::out);
+    of << "launched" << endl;
+    of.close();
 
     struct sockaddr_in addrServ;
     int iConn = socket(AF_INET, SOCK_STREAM, 0);
     class IP IPUtil;
-    int iPortNum = atoi(argv[2]);
+    int iPortNum = 2002;
     string strIP = "";
 
-    if (!strcmp(argv[1], "d9")) {
-        strIP = IPUtil.getIPByNum(9);
-    } else if (!strcmp(argv[1], "d11")) {
-        strIP = IPUtil.getIPByNum(11);
-    } else if (!strcmp(argv[1], "i9")) {
-        strIP = "192.168.13.9";
-    } else if (!strcmp(argv[1], "i11")) {
-        strIP = "192.168.13.11";
-    } else if (!strcmp(argv[1], "i0")) {
-        strIP = "127.0.0.1";
-    } else if (IPUtil.isIP(argv[1])) {
-        strIP = argv[1];
+    if (bSSH) {
+        strIP = getenv("SSH_CLIENT");
+        strIP = strIP.substr(0, strIP.find(" "));
     } else {
-        strIP = IPUtil.domain2IP(argv[1]);
+        iPortNum = atoi(argv[2]);
+
+        if (!strcmp(argv[1], "d9")) {
+            strIP = IPUtil.getIPByNum(9);
+        } else if (!strcmp(argv[1], "d11")) {
+            strIP = IPUtil.getIPByNum(11);
+        } else if (!strcmp(argv[1], "i9")) {
+            strIP = "192.168.13.9";
+        } else if (!strcmp(argv[1], "i11")) {
+            strIP = "192.168.13.11";
+        } else if (!strcmp(argv[1], "i0")) {
+            strIP = "127.0.0.1";
+        } else if (IPUtil.isIP(argv[1])) {
+            strIP = argv[1];
+        } else {
+            strIP = IPUtil.domain2IP(argv[1]);
+        }
     }
 
     bzero(&addrServ, sizeof(addrServ));
