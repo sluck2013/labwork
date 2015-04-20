@@ -1,5 +1,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <netinet/in.h>
 #include <unistd.h>
 #include <arpa/inet.h>
@@ -36,22 +37,49 @@ int main(int argc, char* argv[]) {
     addr.sin_family = AF_INET;
     inet_pton(AF_INET, "127.0.0.1", &(addr.sin_addr));
     //addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    addr.sin_addr.s_addr = INADDR_ANY;
     addr.sin_port = htons(2002);
     iListenfd = socket(AF_INET, SOCK_STREAM, 0);
 
-    char optval = '1';
+    int optval = 1;
     setsockopt(iListenfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
-    setsockopt(iListenfd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
 
-    bind(iListenfd, (struct sockaddr*)&addr, sizeof(addr));
-    listen(iListenfd, 10);
+    int r = bind(iListenfd, (struct sockaddr*)&addr, sizeof(addr));
+    if (r < 0) {
+        cout << "bind failed" << endl;
+    }
+    if (listen(iListenfd, 8) < 0) {
+        cout << "listen failed" << endl;
+    }
     
     fd_set fsRst, fsCurRst;
     FD_ZERO(&fsRst);
     FD_SET(iListenfd, &fsRst);
 
-    cout << "Listening to port 2002..." << endl;
+    r = fork();
+    if (r > 0) {
+        signal(SIGCHLD, SIG_IGN);
+        return 0;
+    } else if (r < 0) {
+        cerr << "1st fork failed" << endl;
+        return 1;
+    }
 
+    setsid();
+    r = fork();
+    if (r != 0) {
+        return 0;
+    }
+
+    chdir("/");
+    umask(0);
+
+    close(STDIN_FILENO);
+    open("/dev/null", O_RDONLY);
+    //close(STDOUT_FILENO);
+    //open("/dev/null", O_WRONLY);
+
+    sleep(10);
     while (1) {
         fsCurRst = fsRst;
         if ( select(iListenfd + 1, &fsRst, NULL, NULL, NULL) > 0 && FD_ISSET(iListenfd, &fsCurRst)) {
@@ -59,20 +87,20 @@ int main(int argc, char* argv[]) {
             if (pid == 0) {
                 clientAddrLen = sizeof(clientAddr);
                 int iConn = accept(iListenfd, (struct sockaddr*)&clientAddr, &clientAddrLen);
+                cout << "accepted" << endl;
+                //close(STDOUT_FILENO);
+                //open("/dev/null", O_WRONLY);
                 close(iListenfd);
                 char ip[20];
                 inet_ntop(AF_INET, &clientAddr.sin_addr, ip, 20);
-                cout << endl << "Established connection with " << ip << endl;
 
                 char buffer[4096];
                 while (1) {
                     int x = recv(iConn, buffer, sizeof(buffer), 0);
-                    cout << "recv from " << ip << ": " << buffer << endl;
                     if (!strncmp(buffer, "exit", 5)) {
                         break;
                     }
                     send(iConn, buffer, strlen(buffer), 0);
-                    cout << "sent to   " << ip << ": " << buffer << endl;
                 }
                 close(iConn);
                 cout << endl << "Connection with " << ip << " closed!" << endl;
